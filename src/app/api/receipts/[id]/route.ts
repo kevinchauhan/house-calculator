@@ -7,10 +7,10 @@ import { jsPDF } from 'jspdf';
 
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     await dbConnect();
-    const { id } = params;
+    const { id } = await params;
 
     try {
         const payment = await Payment.findById(id)
@@ -40,7 +40,7 @@ export async function GET(
         doc.setFontSize(14);
         doc.text(`Paid To:`, 20, 70);
         doc.setFontSize(16);
-        doc.text(`${payment.payeeId.name}`, 60, 70);
+        doc.text(`${(payment.payeeId as any).name}`, 60, 70);
 
         doc.setFontSize(14);
         doc.text(`Amount:`, 20, 90);
@@ -51,7 +51,7 @@ export async function GET(
         doc.text(`For:`, 20, 110);
         doc.setFontSize(14);
         // Safe check if expenseId exists (it might have been deleted, though referenced)
-        const expenseTitle = payment.expenseId ? payment.expenseId.title : 'Expense Deleted';
+        const expenseTitle = payment.expenseId ? (payment.expenseId as any).title : 'Expense Deleted';
         doc.text(`${expenseTitle}`, 60, 110);
 
         doc.setFontSize(12);

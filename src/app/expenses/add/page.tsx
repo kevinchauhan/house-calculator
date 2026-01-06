@@ -24,14 +24,12 @@ export default function AddExpense() {
     });
 
     useEffect(() => {
-        // Fetch payees for dropdown
         const fetchPayees = async () => {
             try {
                 const res = await fetch('/api/payees');
                 const data = await res.json();
                 if (data.success) {
                     setPayees(data.data);
-                    // Auto select first if available
                     if (data.data.length > 0) {
                         setFormData(prev => ({ ...prev, payeeId: data.data[0]._id }));
                     }
@@ -48,7 +46,7 @@ export default function AddExpense() {
         setLoading(true);
 
         if (!formData.payeeId) {
-            alert('Please select a payee. If none exist, create one first.');
+            alert('Please select a payee');
             setLoading(false);
             return;
         }
@@ -65,7 +63,7 @@ export default function AddExpense() {
 
             if (res.ok) {
                 router.push('/expenses');
-                router.refresh();
+                router.refresh(); // Ensure list updates
             } else {
                 alert('Failed to create expense');
             }
@@ -77,33 +75,42 @@ export default function AddExpense() {
         }
     };
 
+    const inputClasses = "mt-1 block w-full rounded-xl border-slate-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-3 border hover:border-indigo-200 transition-colors";
+    const labelClasses = "block text-sm font-medium text-slate-700 mb-1";
+
     return (
-        <div className="max-w-2xl mx-auto space-y-6">
-            <div className="flex items-center space-x-2">
-                <Link href="/expenses" className="text-gray-500 hover:text-gray-700">← Back</Link>
-                <h1 className="text-2xl font-bold text-gray-900">Add New Expense</h1>
+        <div className="max-w-2xl mx-auto space-y-8">
+            <div className="flex items-center gap-4">
+                <Link href="/expenses" className="w-10 h-10 flex items-center justify-center rounded-full bg-white border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-indigo-600 transition-colors">
+                    ←
+                </Link>
+                <div>
+                    <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Add New Expense</h1>
+                    <p className="text-slate-500 text-sm">Estimate a new cost head</p>
+                </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="bg-white shadow rounded-lg p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="bg-white shadow-sm rounded-2xl border border-slate-200 p-8 space-y-6">
                 <div>
-                    <label className="block text-sm font-medium text-gray-700">Title *</label>
+                    <label className={labelClasses}>Title *</label>
                     <input
                         type="text"
                         required
                         placeholder="e.g. Electrical Wiring 1st Floor"
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+                        className={inputClasses}
                         value={formData.title}
                         onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     />
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700">Category *</label>
+                    <label className={labelClasses}>Category *</label>
                     <input
                         type="text"
                         list="common-categories"
                         required
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+                        placeholder="Select or type..."
+                        className={inputClasses}
                         value={formData.category}
                         onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                     />
@@ -118,15 +125,15 @@ export default function AddExpense() {
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700">Payee *</label>
+                    <label className={labelClasses}>Payee *</label>
                     {payees.length === 0 ? (
-                        <div className="mt-1 text-sm text-red-500">
-                            No payees found. <Link href="/payees/new" className="underline">Create a payee first.</Link>
+                        <div className="p-4 bg-red-50 text-red-700 rounded-xl text-sm mb-2">
+                            No payees found. <Link href="/payees/new" className="underline font-medium">Create a payee first.</Link>
                         </div>
                     ) : (
                         <select
                             required
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+                            className={inputClasses}
                             value={formData.payeeId}
                             onChange={(e) => setFormData({ ...formData, payeeId: e.target.value })}
                         >
@@ -138,29 +145,34 @@ export default function AddExpense() {
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700">Estimated Amount (INR) *</label>
-                    <input
-                        type="number"
-                        required
-                        min="0"
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
-                        value={formData.estimatedAmount}
-                        onChange={(e) => setFormData({ ...formData, estimatedAmount: e.target.value })}
-                    />
+                    <label className={labelClasses}>Estimated Amount (INR) *</label>
+                    <div className="relative">
+                        <span className="absolute left-3 top-3 text-slate-400">₹</span>
+                        <input
+                            type="number"
+                            required
+                            min="0"
+                            className={`${inputClasses} pl-8`}
+                            placeholder="0.00"
+                            value={formData.estimatedAmount}
+                            onChange={(e) => setFormData({ ...formData, estimatedAmount: e.target.value })}
+                        />
+                    </div>
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700">Description</label>
+                    <label className={labelClasses}>Description</label>
                     <textarea
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+                        className={inputClasses}
                         rows={3}
+                        placeholder="Optional details..."
                         value={formData.description}
                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     />
                 </div>
 
                 <div className="pt-4">
-                    <Button type="submit" isLoading={loading} className="w-full justify-center" disabled={payees.length === 0}>
+                    <Button type="submit" isLoading={loading} className="w-full justify-center py-3 text-base" disabled={payees.length === 0}>
                         Create Expense
                     </Button>
                 </div>
