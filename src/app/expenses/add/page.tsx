@@ -4,6 +4,9 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Button from '@/components/Button';
 import Link from 'next/link';
+import Combobox from '@/components/Combobox';
+import AddPayeeModal from '@/components/AddPayeeModal';
+import AddCategoryModal from '@/components/AddCategoryModal';
 
 interface Payee {
     _id: string;
@@ -14,6 +17,11 @@ export default function AddExpense() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [payees, setPayees] = useState<Payee[]>([]);
+    const [hasInitialPayment, setHasInitialPayment] = useState(false);
+
+    // Modals state
+    const [isPayeeModalOpen, setIsPayeeModalOpen] = useState(false);
+    const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
 
     const [formData, setFormData] = useState({
         title: '',
@@ -23,6 +31,22 @@ export default function AddExpense() {
         description: '',
     });
 
+    const [paymentData, setPaymentData] = useState({
+        amount: '',
+        date: new Date().toISOString().split('T')[0],
+        mode: 'cash'
+    });
+
+    const [categories, setCategories] = useState([
+        { id: 'Material', label: 'Material', value: 'Material' },
+        { id: 'Labor', label: 'Labor', value: 'Labor' },
+        { id: 'Civil', label: 'Civil', value: 'Civil' },
+        { id: 'Electrical', label: 'Electrical', value: 'Electrical' },
+        { id: 'Plumbing', label: 'Plumbing', value: 'Plumbing' },
+        { id: 'Government', label: 'Government', value: 'Government' },
+        { id: 'Consultant', label: 'Consultant', value: 'Consultant' },
+    ]);
+
     useEffect(() => {
         const fetchPayees = async () => {
             try {
@@ -30,9 +54,6 @@ export default function AddExpense() {
                 const data = await res.json();
                 if (data.success) {
                     setPayees(data.data);
-                    if (data.data.length > 0) {
-                        setFormData(prev => ({ ...prev, payeeId: data.data[0]._id }));
-                    }
                 }
             } catch (e) {
                 console.error('Failed to fetch payees', e);
@@ -46,24 +67,34 @@ export default function AddExpense() {
         setLoading(true);
 
         if (!formData.payeeId) {
-            alert('Please select a payee');
+            alert('Please select or create a payee');
             setLoading(false);
             return;
         }
 
         try {
+            const payload: any = {
+                ...formData,
+                estimatedAmount: parseFloat(formData.estimatedAmount),
+            };
+
+            if (hasInitialPayment) {
+                payload.initialPayment = {
+                    amount: parseFloat(paymentData.amount),
+                    date: paymentData.date,
+                    mode: paymentData.mode
+                };
+            }
+
             const res = await fetch('/api/expenses', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    ...formData,
-                    estimatedAmount: parseFloat(formData.estimatedAmount),
-                }),
+                body: JSON.stringify(payload),
             });
 
             if (res.ok) {
                 router.push('/expenses');
-                router.refresh(); // Ensure list updates
+                router.refresh();
             } else {
                 alert('Failed to create expense');
             }
@@ -75,13 +106,27 @@ export default function AddExpense() {
         }
     };
 
-    const inputClasses = "mt-1 block w-full rounded-xl border-slate-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-3 border hover:border-indigo-200 transition-colors";
-    const labelClasses = "block text-sm font-medium text-slate-700 mb-1";
+    const inputClasses = "mt-1 block w-full rounded-xl border-slate-200 shadow-sm focus:border-slate-900 focus:ring-slate-900 sm:text-sm p-3 border hover:border-slate-300 transition-colors";
+    const labelClasses = "block text-sm font-medium text-slate-700";
+
+    const payeeOptions = payees.map(p => ({ id: p._id, label: p.name, value: p._id }));
+
+    const handlePayeeCreated = (newPayee: Payee) => {
+        setPayees(prev => [newPayee, ...prev]);
+        setFormData(prev => ({ ...prev, payeeId: newPayee._id }));
+    };
+
+    const handleCategoryCreated = (newCategory: string) => {
+        if (!categories.some(c => c.value === newCategory)) {
+            setCategories(prev => [...prev, { id: newCategory, label: newCategory, value: newCategory }]);
+        }
+        setFormData(prev => ({ ...prev, category: newCategory }));
+    };
 
     return (
         <div className="max-w-2xl mx-auto space-y-8">
             <div className="flex items-center gap-4">
-                <Link href="/expenses" className="w-10 h-10 flex items-center justify-center rounded-full bg-white border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-indigo-600 transition-colors">
+                <Link href="/expenses" className="w-10 h-10 flex items-center justify-center rounded-full bg-white border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-900 transition-colors">
                     ←
                 </Link>
                 <div>
@@ -104,49 +149,54 @@ export default function AddExpense() {
                 </div>
 
                 <div>
-                    <label className={labelClasses}>Category *</label>
-                    <input
-                        type="text"
-                        list="common-categories"
-                        required
-                        placeholder="Select or type..."
-                        className={inputClasses}
+                    <div className="flex justify-between items-center mb-1">
+                        <label className={labelClasses}>Category *</label>
+                        <button
+                            type="button"
+                            onClick={() => setIsCategoryModalOpen(true)}
+                            className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-2 py-1 rounded-md transition-colors"
+                        >
+                            + Add New
+                        </button>
+                    </div>
+                    <Combobox
+                        label="" // Label handled above for custom layout
+                        options={categories}
                         value={formData.category}
-                        onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                        onChange={(val) => setFormData({ ...formData, category: val })}
+                        allowCustom={true}
+                        placeholder="Select or type new category..."
+                        onAddClick={() => setIsCategoryModalOpen(true)}
+                        className="mt-0"
                     />
-                    <datalist id="common-categories">
-                        <option value="Material" />
-                        <option value="Labor" />
-                        <option value="Civil" />
-                        <option value="Electrical" />
-                        <option value="Plumbing" />
-                        <option value="Government" />
-                    </datalist>
                 </div>
 
                 <div>
-                    <label className={labelClasses}>Payee *</label>
-                    {payees.length === 0 ? (
-                        <div className="p-4 bg-red-50 text-red-700 rounded-xl text-sm mb-2">
-                            No payees found. <Link href="/payees/new" className="underline font-medium">Create a payee first.</Link>
-                        </div>
-                    ) : (
-                        <select
-                            required
-                            className={inputClasses}
-                            value={formData.payeeId}
-                            onChange={(e) => setFormData({ ...formData, payeeId: e.target.value })}
+                    <div className="flex justify-between items-center mb-1">
+                        <label className={labelClasses}>Payee *</label>
+                        <button
+                            type="button"
+                            onClick={() => setIsPayeeModalOpen(true)}
+                            className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-2 py-1 rounded-md transition-colors"
                         >
-                            {payees.map((p) => (
-                                <option key={p._id} value={p._id}>{p.name}</option>
-                            ))}
-                        </select>
-                    )}
+                            + Add New
+                        </button>
+                    </div>
+                    <Combobox
+                        label="" // Label handled above
+                        options={payeeOptions}
+                        value={formData.payeeId}
+                        onChange={(val) => setFormData({ ...formData, payeeId: val })}
+                        allowCustom={false}
+                        placeholder="Select payee..."
+                        onAddClick={() => setIsPayeeModalOpen(true)}
+                        className="mt-0"
+                    />
                 </div>
 
                 <div>
                     <label className={labelClasses}>Estimated Amount (INR) *</label>
-                    <div className="relative">
+                    <div className="relative mt-1">
                         <span className="absolute left-3 top-3 text-slate-400">₹</span>
                         <input
                             type="number"
@@ -161,22 +211,90 @@ export default function AddExpense() {
                 </div>
 
                 <div>
-                    <label className={labelClasses}>Description</label>
+                    <label className={`${labelClasses} mb-1`}>Description</label>
                     <textarea
                         className={inputClasses}
-                        rows={3}
+                        rows={2}
                         placeholder="Optional details..."
                         value={formData.description}
                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     />
                 </div>
 
-                <div className="pt-4">
-                    <Button type="submit" isLoading={loading} className="w-full justify-center py-3 text-base" disabled={payees.length === 0}>
+                {/* Initial Payment Toggle */}
+                <div className="pt-4 border-t border-slate-100">
+                    <div className="flex items-center gap-2 mb-4">
+                        <input
+                            type="checkbox"
+                            id="initialPayment"
+                            className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500"
+                            checked={hasInitialPayment}
+                            onChange={(e) => setHasInitialPayment(e.target.checked)}
+                        />
+                        <label htmlFor="initialPayment" className="text-sm font-medium text-slate-900 select-none">
+                            Record initial payment now?
+                        </label>
+                    </div>
+
+                    {hasInitialPayment && (
+                        <div className="bg-slate-50 p-4 rounded-xl space-y-4 animate-in fade-in slide-in-from-top-2">
+                            <div>
+                                <label className={labelClasses}>Paid Amount (INR) *</label>
+                                <input
+                                    type="number"
+                                    required={hasInitialPayment}
+                                    min="0"
+                                    className={inputClasses}
+                                    value={paymentData.amount}
+                                    onChange={(e) => setPaymentData({ ...paymentData, amount: e.target.value })}
+                                />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className={labelClasses}>Date</label>
+                                    <input
+                                        type="date"
+                                        required={hasInitialPayment}
+                                        className={inputClasses}
+                                        value={paymentData.date}
+                                        onChange={(e) => setPaymentData({ ...paymentData, date: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <label className={labelClasses}>Mode</label>
+                                    <select
+                                        className={inputClasses}
+                                        value={paymentData.mode}
+                                        onChange={(e) => setPaymentData({ ...paymentData, mode: e.target.value })}
+                                    >
+                                        <option value="cash">Cash</option>
+                                        <option value="upi">UPI</option>
+                                        <option value="bank">Bank</option>
+                                        <option value="cheque">Cheque</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                <div className="pt-2">
+                    <Button type="submit" isLoading={loading} className="w-full justify-center py-3 text-base">
                         Create Expense
                     </Button>
                 </div>
             </form>
+
+            <AddPayeeModal
+                isOpen={isPayeeModalOpen}
+                onClose={() => setIsPayeeModalOpen(false)}
+                onSuccess={handlePayeeCreated}
+            />
+            <AddCategoryModal
+                isOpen={isCategoryModalOpen}
+                onClose={() => setIsCategoryModalOpen(false)}
+                onSuccess={handleCategoryCreated}
+            />
         </div>
     );
 }

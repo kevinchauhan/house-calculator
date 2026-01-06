@@ -3,15 +3,20 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import ConfirmDialog from '@/components/ConfirmDialog';
 
 export default function PaymentList({ payments, expenseId }: { payments: any[], expenseId: string }) {
     const router = useRouter();
     const [deletingId, setDeletingId] = useState<string | null>(null);
+    const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
-    const handleDelete = async (paymentId: string) => {
-        if (!confirm('Are you sure you want to delete this payment?')) return;
+    const handleDelete = async () => {
+        if (!confirmDeleteId) return;
 
+        const paymentId = confirmDeleteId;
+        setConfirmDeleteId(null);
         setDeletingId(paymentId);
+
         try {
             const res = await fetch(`/api/payments/${paymentId}`, {
                 method: 'DELETE',
@@ -58,7 +63,7 @@ export default function PaymentList({ payments, expenseId }: { payments: any[], 
                                     </span>
                                 </div>
                                 <div className="text-sm text-slate-500 mt-1 flex items-center gap-2">
-                                    <span>{new Date(p.paymentDate).toLocaleDateString()}</span>
+                                    <span>{new Date(p.paymentDate).toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
                                     <span>•</span>
                                     <span className="font-mono text-xs bg-slate-50 px-1 py-0.5 rounded text-slate-400">#{p.receiptNumber}</span>
                                 </div>
@@ -80,7 +85,7 @@ export default function PaymentList({ payments, expenseId }: { payments: any[], 
                                     Edit
                                 </Link>
                                 <button
-                                    onClick={() => handleDelete(p._id)}
+                                    onClick={() => setConfirmDeleteId(p._id)}
                                     disabled={deletingId === p._id}
                                     className="text-sm font-medium text-red-600 hover:text-red-800 hover:bg-red-50 p-2 rounded-lg transition-colors disabled:opacity-50"
                                 >
@@ -91,6 +96,16 @@ export default function PaymentList({ payments, expenseId }: { payments: any[], 
                     ))}
                 </div>
             )}
+
+            <ConfirmDialog
+                isOpen={!!confirmDeleteId}
+                title="Delete Payment"
+                message="Are you sure you want to delete this payment record?"
+                confirmLabel="Delete Payment"
+                onConfirm={handleDelete}
+                onCancel={() => setConfirmDeleteId(null)}
+                isDestructive={true}
+            />
         </div>
     );
 }
