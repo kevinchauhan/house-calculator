@@ -12,6 +12,11 @@ const outfit = Outfit({
 export const metadata: Metadata = {
   title: 'Construction Expense Tracker',
   description: 'Manage construction expenses, payments, and receipts.',
+  appleWebApp: {
+    title: 'HouseCalc',
+    statusBarStyle: 'default',
+    capable: true,
+  },
 };
 
 export default function RootLayout({
