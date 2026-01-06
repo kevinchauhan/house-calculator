@@ -22,6 +22,7 @@ export default function Navbar() {
                     </div>
 
                     <div className="flex items-center space-x-1 sm:space-x-4">
+                        <NavLink href="/" label="Home" active={pathname === '/'} />
                         <NavLink href="/expenses" label="Expenses" active={pathname?.startsWith('/expenses')} />
                         <NavLink href="/payees" label="Payees" active={pathname?.startsWith('/payees')} />
                     </div>
@@ -36,8 +37,8 @@ function NavLink({ href, label, active }: { href: string; label: string; active?
         <Link
             href={href}
             className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${active
-                    ? 'bg-slate-100 text-slate-900'
-                    : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
+                ? 'bg-slate-100 text-slate-900'
+                : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
                 }`}
         >
             {label}
