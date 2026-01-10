@@ -60,15 +60,16 @@ export default async function ExpenseDetail(props: { params: Promise<{ id: strin
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                 <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
                     <p className="text-sm font-medium text-slate-500">Estimated Cost</p>
-                    <p className="text-2xl font-bold text-slate-900 mt-1">₹{expense.estimatedAmount?.toLocaleString()}</p>
+                    <p className="text-2xl font-bold text-slate-900 mt-1">₹{expense.estimatedAmount?.toLocaleString('en-IN')}
+                    </p>
                 </div>
                 <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200">
                     <p className="text-sm font-medium text-slate-500">Amount Paid</p>
-                    <p className="text-2xl font-bold text-emerald-600 mt-1">₹{totalPaid.toLocaleString()}</p>
+                    <p className="text-2xl font-bold text-emerald-600 mt-1">₹{totalPaid.toLocaleString('en-IN')}</p>
                 </div>
                 <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200">
                     <p className="text-sm font-medium text-slate-500">Balance Pending</p>
-                    <p className="text-2xl font-bold text-slate-900 mt-1">₹{balance.toLocaleString()}</p>
+                    <p className="text-2xl font-bold text-slate-900 mt-1">₹{balance.toLocaleString('en-IN')}</p>
                 </div>
             </div>
 

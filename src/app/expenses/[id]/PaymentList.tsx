@@ -57,7 +57,7 @@ export default function PaymentList({ payments, expenseId }: { payments: any[], 
                         <div key={p._id} className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col sm:flex-row justify-between sm:items-center gap-4 hover:border-indigo-200 transition-colors">
                             <div>
                                 <div className="flex items-center gap-3">
-                                    <span className="text-lg font-bold text-slate-900">₹{p.amount.toLocaleString()}</span>
+                                    <span className="text-lg font-bold text-slate-900">₹{p.amount.toLocaleString('en-IN')}</span>
                                     <span className="px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200 uppercase tracking-wide">
                                         {p.paymentMode}
                                     </span>
