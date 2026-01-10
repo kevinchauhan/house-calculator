@@ -1,6 +1,7 @@
 import dbConnect from '@/lib/dbConnect';
 export const dynamic = 'force-dynamic';
 import Expense from '@/models/Expense';
+import '@/models/Payee'; // Ensure Payee model is registered for populate
 import Payment from '@/models/Payment';
 import Link from 'next/link';
 import ExpenseActions from './ExpenseActions';
