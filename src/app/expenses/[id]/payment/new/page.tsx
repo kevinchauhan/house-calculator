@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Button from '@/components/Button';
 import Link from 'next/link';
@@ -20,13 +20,15 @@ export default function AddPayment() {
 
     const [expense, setExpense] = useState<any>(null);
 
-    useState(() => {
+    useEffect(() => {
+        if (!expenseId) return;
+
         fetch(`/api/expenses/${expenseId}`).then(res => res.json()).then(data => {
             if (data.success) {
                 setExpense(data.data.expense);
             }
         });
-    });
+    }, [expenseId]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
