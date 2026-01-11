@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
 import Payment from '@/models/Payment';
-import Expense from '@/models/Expense';
-import '@/models/Payee'; // Ensure registration
+import '@/models/Expense'; // Force registration
+import '@/models/Payee';   // Force registration
 import ExcelJS from 'exceljs';
 
 export async function GET(request: NextRequest) {

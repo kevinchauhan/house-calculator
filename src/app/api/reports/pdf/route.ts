@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
 import Payment from '@/models/Payment';
-import Expense from '@/models/Expense';
-import '@/models/Payee';
+import '@/models/Expense'; // Force registration
+import '@/models/Payee';   // Force registration
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
