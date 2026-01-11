@@ -25,6 +25,7 @@ export default function Navbar() {
                         <NavLink href="/" label="Home" active={pathname === '/'} />
                         <NavLink href="/expenses" label="Expenses" active={pathname?.startsWith('/expenses')} />
                         <NavLink href="/payees" label="Payees" active={pathname?.startsWith('/payees')} />
+                        <NavLink href="/reports" label="Reports" active={pathname?.startsWith('/reports')} />
                     </div>
                 </div>
             </div>

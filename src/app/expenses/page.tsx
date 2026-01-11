@@ -2,6 +2,7 @@ import dbConnect from '@/lib/dbConnect';
 export const dynamic = 'force-dynamic';
 import Expense from '@/models/Expense';
 import Link from 'next/link';
+import ReportButton from '@/components/ReportButton';
 
 async function getExpenses() {
     await dbConnect();
@@ -60,6 +61,10 @@ export default async function ExpensesList() {
                 </Link>
             </div>
 
+            <div className="flex justify-end">
+                <ReportButton />
+            </div>
+
             <div className="grid grid-cols-1 gap-4">
                 {expenses.map((expense: any) => {
                     const progress = Math.min(100, Math.max(0, ((expense.totalPaid || 0) / (expense.estimatedAmount || 1)) * 100));
@@ -102,8 +107,8 @@ export default async function ExpensesList() {
                                     <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
                                         <div
                                             className={`h-full rounded-full transition-all duration-500 ease-out ${isFull
-                                                    ? 'bg-gradient-to-r from-emerald-500 to-teal-500'
-                                                    : 'bg-gradient-to-r from-indigo-500 to-blue-500'
+                                                ? 'bg-gradient-to-r from-emerald-500 to-teal-500'
+                                                : 'bg-gradient-to-r from-indigo-500 to-blue-500'
                                                 }`}
                                             style={{ width: `${progress}%` }}
                                         ></div>

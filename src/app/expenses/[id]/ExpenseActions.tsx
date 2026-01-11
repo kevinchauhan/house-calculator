@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useState } from 'react';
 import ConfirmDialog from '@/components/ConfirmDialog';
+import ReportButton from '@/components/ReportButton';
 
 export default function ExpenseActions({ expenseId }: { expenseId: string }) {
     const router = useRouter();
@@ -42,6 +43,7 @@ export default function ExpenseActions({ expenseId }: { expenseId: string }) {
                 >
                     Edit Expense
                 </Link>
+                <ReportButton expenseId={expenseId} />
                 <button
                     onClick={() => setShowConfirm(true)}
                     disabled={isDeleting}

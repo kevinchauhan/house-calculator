@@ -9,7 +9,9 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "exceljs": "^4.4.0",
     "jspdf": "^4.0.0",
+    "jspdf-autotable": "^5.0.7",
     "mongoose": "^9.1.2",
     "next": "16.1.1",
     "react": "19.2.3",
