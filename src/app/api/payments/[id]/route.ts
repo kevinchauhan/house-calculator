@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
 import Payment from '@/models/Payment';
+import '@/models/Expense'; // Ensure Expense model is registered (referenced in Payment)
+import '@/models/Payee';   // Ensure Payee model is registered
 import mongoose from 'mongoose';
 
 export async function GET(

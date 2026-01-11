@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/dbConnect';
 import Expense from '@/models/Expense';
+import '@/models/Payee'; // Ensure Payee model is registered for populate
 import Payment from '@/models/Payment';
 import mongoose from 'mongoose';
 
@@ -15,12 +16,12 @@ export async function GET(
         return NextResponse.json({ success: false, error: 'Invalid expense ID' }, { status: 400 });
     }
 
-    const expense = await Expense.findById(id).populate('payeeId');
+    const expense = await Expense.findById(id).populate('payeeId').lean();
     if (!expense) {
         return NextResponse.json({ success: false, error: 'Expense not found' }, { status: 404 });
     }
 
-    const payments = await Payment.find({ expenseId: id }).sort({ paymentDate: -1 });
+    const payments = await Payment.find({ expenseId: id }).sort({ paymentDate: -1 }).lean();
     const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0);
     const balance = (expense.estimatedAmount || 0) - totalPaid;
 
