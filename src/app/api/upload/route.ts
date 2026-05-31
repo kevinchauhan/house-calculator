@@ -20,12 +20,23 @@ export async function POST(request: NextRequest) {
         const arrayBuffer = await file.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
 
+        const isPdf = file.name.toLowerCase().endsWith('.pdf') || file.type === 'application/pdf';
+        
+        // Generate a safe, unique public ID containing the file extension
+        const cleanName = file.name
+            .substring(0, file.name.lastIndexOf('.'))
+            .replace(/[^a-zA-Z0-9_.-]/g, '_'); // sanitize filename characters
+        const fileExt = file.name.split('.').pop() || 'pdf';
+        const uniqueId = `${cleanName}_${Date.now()}`;
+        const publicId = isPdf ? `${uniqueId}.${fileExt}` : uniqueId;
+
         // Upload to Cloudinary using a Promise stream upload
         const result = await new Promise((resolve, reject) => {
             const uploadStream = cloudinary.uploader.upload_stream(
                 {
-                    resource_type: 'auto', // Detects PDF or images automatically
+                    resource_type: isPdf ? 'raw' : 'image', // raw for PDFs to bypass delivery restriction, image for images
                     folder: 'house_calculator',
+                    public_id: publicId,
                 },
                 (error, result) => {
                     if (error) reject(error);
@@ -34,6 +45,8 @@ export async function POST(request: NextRequest) {
             );
             uploadStream.end(buffer);
         });
+
+
 
         const uploadResult = result as any;
 
