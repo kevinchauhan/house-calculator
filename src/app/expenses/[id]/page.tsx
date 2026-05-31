@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import Expense from '@/models/Expense';
 import '@/models/Payee'; // Ensure Payee model is registered for populate
 import Payment from '@/models/Payment';
+import Attachment from '@/models/Attachment';
 import Link from 'next/link';
 import ExpenseActions from './ExpenseActions';
 import PaymentList from './PaymentList';
@@ -18,11 +19,10 @@ async function getExpenseDetails(id: string) {
     const totalPaid = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
     const balance = (expense.estimatedAmount || 0) - totalPaid;
 
-    // Convert _id and dates to string/number to be serializable for Client Components if needed, 
-    // though passing to ExpenseActions and PaymentList (Client Components) standard serializable props is fine.
-    // Next.js Server Actions/Components serialization handles basic JSON types.
-    // We'll trust lean() and JSON.parse trick to strip mongoose object wrappers.
-    return JSON.parse(JSON.stringify({ expense, payments, totalPaid, balance }));
+    // Fetch attachments for this expense
+    const attachments = await Attachment.find({ expenseId: id }).sort({ createdAt: -1 }).lean();
+
+    return JSON.parse(JSON.stringify({ expense, payments, totalPaid, balance, attachments }));
 }
 
 export default async function ExpenseDetail(props: { params: Promise<{ id: string }> }) {
@@ -33,7 +33,10 @@ export default async function ExpenseDetail(props: { params: Promise<{ id: strin
         return <div className="text-center py-20 text-slate-500">Expense not found</div>;
     }
 
-    const { expense, payments, totalPaid, balance } = data;
+    const { expense, payments, totalPaid, balance, attachments = [] } = data;
+
+    // Separate expense-level attachments from payment attachments
+    const expenseAttachments = attachments.filter((att: any) => !att.paymentId);
 
     return (
         <div className="space-y-8">
@@ -73,16 +76,59 @@ export default async function ExpenseDetail(props: { params: Promise<{ id: strin
                 </div>
             </div>
 
-            {/* Description */}
-            {expense.description && (
-                <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
-                    <h3 className="text-sm font-semibold text-slate-900 mb-2">Description</h3>
-                    <p className="text-slate-600 leading-relaxed">{expense.description}</p>
+            {/* Description & Expense-level attachments */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className={`${expenseAttachments.length > 0 ? 'md:col-span-2' : 'md:col-span-3'} space-y-6`}>
+                    {expense.description && (
+                        <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+                            <h3 className="text-sm font-semibold text-slate-900 mb-2">Description</h3>
+                            <p className="text-slate-600 leading-relaxed">{expense.description}</p>
+                        </div>
+                    )}
                 </div>
-            )}
 
-            {/* Payments List Component (includes Delete Actions) */}
-            <PaymentList payments={payments} expenseId={expense._id} />
+                {/* Expense-level Attachments Panel */}
+                {expenseAttachments.length > 0 && (
+                    <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col">
+                        <h3 className="text-sm font-semibold text-slate-900 mb-3">Expense Files</h3>
+                        <div className="grid grid-cols-2 gap-3 overflow-y-auto max-h-[220px] pr-1">
+                            {expenseAttachments.map((att: any) => {
+                                const isPdf = att.format?.toLowerCase() === 'pdf' || att.originalName.toLowerCase().endsWith('.pdf');
+                                return (
+                                    <a
+                                        key={att._id}
+                                        href={att.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="group relative flex flex-col justify-between p-3 rounded-xl border border-slate-100 bg-slate-50 hover:bg-slate-100 hover:border-slate-200 transition-all text-center overflow-hidden"
+                                    >
+                                        <div className="mx-auto my-1 flex items-center justify-center">
+                                            {isPdf ? (
+                                                <div className="w-10 h-10 bg-red-50 text-red-600 rounded-lg flex items-center justify-center border border-red-100 font-extrabold text-xs">
+                                                    PDF
+                                                </div>
+                                            ) : (
+                                                <img
+                                                    src={att.url}
+                                                    alt={att.originalName}
+                                                    className="w-10 h-10 object-cover rounded-lg shadow-sm border border-white group-hover:scale-105 transition-transform"
+                                                />
+                                            )}
+                                        </div>
+                                        <span className="text-[11px] font-medium text-slate-700 truncate mt-2 w-full block">
+                                            {att.originalName}
+                                        </span>
+                                    </a>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* Payments List Component (includes Delete Actions and pass files) */}
+            <PaymentList payments={payments} expenseId={expense._id} attachments={attachments} />
         </div>
     );
 }
+

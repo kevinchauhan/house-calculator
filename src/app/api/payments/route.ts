@@ -26,6 +26,11 @@ export async function POST(request: NextRequest) {
     await dbConnect();
     try {
         const body = await request.json();
+        
+        // Extract attachments
+        const paymentAttachments = body.attachments || [];
+        const paymentData = { ...body };
+        delete paymentData.attachments;
 
         // Generate Receipt Number
         // Format: HC-YYYY-XXXX (e.g., HC-2026-0001)
@@ -47,12 +52,28 @@ export async function POST(request: NextRequest) {
         const receiptNumber = `${prefix}${sequence.toString().padStart(4, '0')}`;
 
         const payment = await Payment.create({
-            ...body,
+            ...paymentData,
             receiptNumber
         });
 
+        // Link attachments
+        if (paymentAttachments.length > 0) {
+            const Attachment = (await import('@/models/Attachment')).default;
+            await Promise.all(
+                paymentAttachments.map((att: any) =>
+                    Attachment.create({
+                        ...att,
+                        expenseId: payment.expenseId,
+                        paymentId: payment._id,
+                    })
+                )
+            );
+        }
+
         return NextResponse.json({ success: true, data: payment }, { status: 201 });
     } catch (error: any) {
+        console.error('Payment POST error:', error);
         return NextResponse.json({ success: false, error: error.message }, { status: 400 });
     }
 }
+

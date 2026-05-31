@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Button from '@/components/Button';
 import Link from 'next/link';
+import AttachmentUpload from '@/components/AttachmentUpload';
+
 
 export default function AddPayment() {
     const router = useRouter();
@@ -11,6 +13,7 @@ export default function AddPayment() {
     const expenseId = params.id as string;
 
     const [loading, setLoading] = useState(false);
+    const [attachments, setAttachments] = useState<any[]>([]);
     const [formData, setFormData] = useState({
         amount: '',
         paymentDate: new Date().toISOString().split('T')[0],
@@ -47,6 +50,7 @@ export default function AddPayment() {
                     paymentDate: new Date(formData.paymentDate),
                     paymentMode: formData.paymentMode,
                     notes: formData.notes,
+                    attachments: attachments, // include upload documents
                 }),
             });
 
@@ -63,6 +67,7 @@ export default function AddPayment() {
             setLoading(false);
         }
     };
+
 
     const inputClasses = "mt-1 block w-full rounded-xl border-slate-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-3 border hover:border-indigo-200 transition-colors";
     const labelClasses = "block text-sm font-medium text-slate-700 mb-1";
@@ -137,6 +142,14 @@ export default function AddPayment() {
                         placeholder="Transaction ID, Cheque No, etc..."
                         value={formData.notes}
                         onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                    />
+                </div>
+
+                <div>
+                    <AttachmentUpload
+                        value={attachments}
+                        onChange={setAttachments}
+                        label="Receipt / Payment Attachments"
                     />
                 </div>
 

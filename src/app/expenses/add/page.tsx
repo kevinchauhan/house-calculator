@@ -7,6 +7,7 @@ import Link from 'next/link';
 import Combobox from '@/components/Combobox';
 import AddPayeeModal from '@/components/AddPayeeModal';
 import AddCategoryModal from '@/components/AddCategoryModal';
+import AttachmentUpload from '@/components/AttachmentUpload';
 
 interface Payee {
     _id: string;
@@ -18,6 +19,10 @@ export default function AddExpense() {
     const [loading, setLoading] = useState(false);
     const [payees, setPayees] = useState<Payee[]>([]);
     const [hasInitialPayment, setHasInitialPayment] = useState(false);
+
+    // Attachments State
+    const [attachments, setAttachments] = useState<any[]>([]);
+    const [paymentAttachments, setPaymentAttachments] = useState<any[]>([]);
 
     // Modals state
     const [isPayeeModalOpen, setIsPayeeModalOpen] = useState(false);
@@ -76,13 +81,15 @@ export default function AddExpense() {
             const payload: any = {
                 ...formData,
                 estimatedAmount: parseFloat(formData.estimatedAmount),
+                attachments: attachments, // attach file metadata to expense
             };
 
             if (hasInitialPayment) {
                 payload.initialPayment = {
                     amount: parseFloat(paymentData.amount),
                     date: paymentData.date,
-                    mode: paymentData.mode
+                    mode: paymentData.mode,
+                    attachments: paymentAttachments, // attach files to initial payment
                 };
             }
 
@@ -105,6 +112,7 @@ export default function AddExpense() {
             setLoading(false);
         }
     };
+
 
     const inputClasses = "mt-1 block w-full rounded-xl border-slate-200 shadow-sm focus:border-slate-900 focus:ring-slate-900 sm:text-sm p-3 border hover:border-slate-300 transition-colors";
     const labelClasses = "block text-sm font-medium text-slate-700";
@@ -221,6 +229,14 @@ export default function AddExpense() {
                     />
                 </div>
 
+                <div>
+                    <AttachmentUpload
+                        value={attachments}
+                        onChange={setAttachments}
+                        label="Expense Attachments (Images/PDFs)"
+                    />
+                </div>
+
                 {/* Initial Payment Toggle */}
                 <div className="pt-4 border-t border-slate-100">
                     <div className="flex items-center gap-2 mb-4">
@@ -273,6 +289,13 @@ export default function AddExpense() {
                                         <option value="cheque">Cheque</option>
                                     </select>
                                 </div>
+                            </div>
+                            <div className="pt-2">
+                                <AttachmentUpload
+                                    value={paymentAttachments}
+                                    onChange={setPaymentAttachments}
+                                    label="Receipt / Payment Attachments"
+                                />
                             </div>
                         </div>
                     )}
