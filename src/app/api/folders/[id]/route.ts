@@ -60,7 +60,7 @@ async function deleteFolderRecursively(folderId: string) {
     // 2. Find child folders and delete them recursively
     const childFolders = await Folder.find({ parentFolderId: folderId });
     for (const child of childFolders) {
-        await deleteFolderRecursively(child._id as string);
+        await deleteFolderRecursively(child._id.toString());
     }
 
     // 3. Delete this folder itself
