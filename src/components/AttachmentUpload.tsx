@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import { triggerDownload } from '@/lib/download';
 
 interface Attachment {
     originalName: string;
@@ -200,6 +201,13 @@ export default function AttachmentUpload({ value, onChange, label = 'Attachments
                                     >
                                         View
                                     </a>
+                                    <button
+                                        type="button"
+                                        onClick={() => triggerDownload(file.url, file.originalName)}
+                                        className="text-xs font-semibold text-emerald-600 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1.5 rounded-lg transition-colors border border-transparent cursor-pointer"
+                                    >
+                                        Download
+                                    </button>
                                     <button
                                         type="button"
                                         onClick={() => removeFile(idx)}

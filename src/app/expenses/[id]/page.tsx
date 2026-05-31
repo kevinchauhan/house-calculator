@@ -7,6 +7,8 @@ import Attachment from '@/models/Attachment';
 import Link from 'next/link';
 import ExpenseActions from './ExpenseActions';
 import PaymentList from './PaymentList';
+import ExpenseFiles from './ExpenseFiles';
+
 
 async function getExpenseDetails(id: string) {
     await dbConnect();
@@ -89,40 +91,7 @@ export default async function ExpenseDetail(props: { params: Promise<{ id: strin
 
                 {/* Expense-level Attachments Panel */}
                 {expenseAttachments.length > 0 && (
-                    <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col">
-                        <h3 className="text-sm font-semibold text-slate-900 mb-3">Expense Files</h3>
-                        <div className="grid grid-cols-2 gap-3 overflow-y-auto max-h-[220px] pr-1">
-                            {expenseAttachments.map((att: any) => {
-                                const isPdf = att.format?.toLowerCase() === 'pdf' || att.originalName.toLowerCase().endsWith('.pdf');
-                                return (
-                                    <a
-                                        key={att._id}
-                                        href={att.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="group relative flex flex-col justify-between p-3 rounded-xl border border-slate-100 bg-slate-50 hover:bg-slate-100 hover:border-slate-200 transition-all text-center overflow-hidden"
-                                    >
-                                        <div className="mx-auto my-1 flex items-center justify-center">
-                                            {isPdf ? (
-                                                <div className="w-10 h-10 bg-red-50 text-red-600 rounded-lg flex items-center justify-center border border-red-100 font-extrabold text-xs">
-                                                    PDF
-                                                </div>
-                                            ) : (
-                                                <img
-                                                    src={att.url}
-                                                    alt={att.originalName}
-                                                    className="w-10 h-10 object-cover rounded-lg shadow-sm border border-white group-hover:scale-105 transition-transform"
-                                                />
-                                            )}
-                                        </div>
-                                        <span className="text-[11px] font-medium text-slate-700 truncate mt-2 w-full block">
-                                            {att.originalName}
-                                        </span>
-                                    </a>
-                                );
-                            })}
-                        </div>
-                    </div>
+                    <ExpenseFiles attachments={expenseAttachments} />
                 )}
             </div>
 

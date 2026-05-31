@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import AttachmentUpload from '@/components/AttachmentUpload';
+import { triggerDownload } from '@/lib/download';
 
 // --- Tagging Workspace Interfaces ---
 interface Expense {
@@ -492,6 +493,12 @@ export default function FilesPage() {
                                                     >
                                                         View Document →
                                                     </a>
+                                                    <button
+                                                        onClick={() => triggerDownload(att.url, att.originalName)}
+                                                        className="text-xs font-semibold text-emerald-600 hover:text-emerald-850 inline-block mt-1 ml-3 bg-transparent border-none cursor-pointer"
+                                                    >
+                                                        Download ↓
+                                                    </button>
                                                 </div>
                                             </div>
 
@@ -721,6 +728,12 @@ export default function FilesPage() {
                                                 >
                                                     View
                                                 </a>
+                                                <button
+                                                    onClick={() => triggerDownload(doc.url, doc.name)}
+                                                    className="text-xs font-semibold text-emerald-600 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1.5 rounded-lg transition-all cursor-pointer border border-transparent"
+                                                >
+                                                    Download
+                                                </button>
                                                 <button
                                                     type="button"
                                                     onClick={() => handleDeleteDocument(doc._id)}

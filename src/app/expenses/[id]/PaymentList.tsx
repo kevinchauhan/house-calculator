@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import ConfirmDialog from '@/components/ConfirmDialog';
+import { triggerDownload } from '@/lib/download';
 
 export default function PaymentList({ payments, expenseId, attachments = [] }: { payments: any[], expenseId: string, attachments?: any[] }) {
     const router = useRouter();
@@ -103,20 +104,20 @@ export default function PaymentList({ payments, expenseId, attachments = [] }: {
                                         {pAttachments.map((att: any) => {
                                             const isPdf = att.format?.toLowerCase() === 'pdf' || att.originalName.toLowerCase().endsWith('.pdf');
                                             return (
-                                                <a
+                                                <div
                                                     key={att._id}
-                                                    href={att.url}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="inline-flex items-center gap-2 p-1.5 pr-3 rounded-lg border border-slate-150 bg-slate-50 hover:bg-slate-100 text-xs font-semibold text-slate-700 transition-colors max-w-[200px]"
+                                                    className="inline-flex items-center gap-2 p-1.5 pr-2.5 rounded-lg border border-slate-150 bg-slate-50 text-xs font-semibold text-slate-700 max-w-[260px] shadow-xs"
                                                 >
                                                     {isPdf ? (
-                                                        <span className="w-5 h-5 bg-red-100 text-red-700 rounded flex items-center justify-center font-bold text-[9px]">PDF</span>
+                                                        <span className="w-5 h-5 bg-red-100 text-red-700 rounded flex items-center justify-center font-bold text-[9px] flex-shrink-0">PDF</span>
                                                     ) : (
-                                                        <img src={att.url} alt="" className="w-5 h-5 object-cover rounded shadow-sm" />
+                                                        <img src={att.url} alt="" className="w-5 h-5 object-cover rounded shadow-sm flex-shrink-0" />
                                                     )}
-                                                    <span className="truncate">{att.originalName}</span>
-                                                </a>
+                                                    <span className="truncate max-w-[80px] text-[11px]" title={att.originalName}>{att.originalName}</span>
+                                                    <span className="text-slate-300 text-[10px]">|</span>
+                                                    <a href={att.url} target="_blank" rel="noopener noreferrer" className="text-[10px] text-indigo-600 hover:underline">View</a>
+                                                    <button onClick={() => triggerDownload(att.url, att.originalName)} className="text-[10px] text-emerald-600 hover:underline bg-transparent border-none cursor-pointer p-0">Get</button>
+                                                </div>
                                             );
                                         })}
                                     </div>
